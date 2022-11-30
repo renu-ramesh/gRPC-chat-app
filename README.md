@@ -30,54 +30,65 @@ To run client server without group name specification (one-to-one) :
 
 ## Methods
 
-Example methods as follows: 
+Example methods as follows:
+
+baseurl = 'http://localhost:8080/api/v1'
 
 **Add new user**
 
+
 curl --request POST \
-  --url http://localhost:8080/api/v1/users \
+  --url {baseurl}/users \
   --header 'Content-Type: application/json' \
   --data '{"name":"renu"}'
 
+
 **List all users**
 
+
 curl --request GET \
-  --url http://localhost:8080/api/v1/users
+  --url {baseurl}/users
 
 **Create a Group**
 
+
 curl --request POST \
-  --url http://localhost:8080/api/v1/channel \
+  --url {baseurl}/channel \
   --header 'Content-Type: application/json' \
   --data '{"name":"Techversant",
 "type":"company"}'
 
 **List all Groups**
 
+
 curl --request GET \
-  --url http://localhost:8080/api/v1/channel
+  --url {baseurl}/channel
 
 **Delete a Group**
 
+
 curl --request DELETE \
-  --url http://localhost:8080/api/v1/channel/1 \
+  --url {baseurl}/channel/{:id} \
   --header 'Content-Type: application/json'
 
 **Join a Group**
 
+
 curl --request POST \
-  --url http://localhost:8080/api/v1/users/2/join \
+  --url {baseurl}/users/{:id}/join \
   --header 'Content-Type: application/json' \
   --data '{"channel_name":"Techversant"}'
 
 **List User's Group Details**
 
+
 curl --request GET \
-  --url http://localhost:8080/api/v1/users/channels
+  --url {baseurl}/users/channels
 
 **Left from a Group**
 
+
 curl --request PUT \
-  --url http://localhost:8080/api/v1/users/1/left \
+  --url {baseurl}/users/{:id}/left \
   --header 'Content-Type: application/json' \
   --data '{"channel_name":"epixelsolutions"}'
