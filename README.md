@@ -37,58 +37,58 @@ baseurl = 'http://localhost:8080/api/v1'
 **Add new user**
 
 
-curl --request POST \
-  --url {baseurl}/users \
-  --header 'Content-Type: application/json' \
-  --data '{"name":"renu"}'
+    curl --request POST \
+    --url {baseurl}/users \
+    --header 'Content-Type: application/json' \
+    --data '{"name":"renu"}'
 
 
 **List all users**
 
 
-curl --request GET \
-  --url {baseurl}/users
+    curl --request GET \
+    --url {baseurl}/users
 
 **Create a Group**
 
 
-curl --request POST \
-  --url {baseurl}/channel \
-  --header 'Content-Type: application/json' \
-  --data '{"name":"Techversant",
-"type":"company"}'
+    curl --request POST \
+    --url {baseurl}/channel \
+    --header 'Content-Type: application/json' \
+    --data '{"name":"Techversant",
+    "type":"company"}'
 
 **List all Groups**
 
 
-curl --request GET \
-  --url {baseurl}/channel
+    curl --request GET \
+    --url {baseurl}/channel
 
 **Delete a Group**
 
 
-curl --request DELETE \
-  --url {baseurl}/channel/{:id} \
-  --header 'Content-Type: application/json'
+    curl --request DELETE \
+    --url {baseurl}/channel/{:id} \
+    --header 'Content-Type: application/json'
 
 **Join a Group**
 
 
-curl --request POST \
-  --url {baseurl}/users/{:id}/join \
-  --header 'Content-Type: application/json' \
-  --data '{"channel_name":"Techversant"}'
+    curl --request POST \
+    --url {baseurl}/users/{:id}/join \
+    --header 'Content-Type: application/json' \
+    --data '{"channel_name":"Techversant"}'
 
 **List User's Group Details**
 
 
-curl --request GET \
-  --url {baseurl}/users/channels
+    curl --request GET \
+    --url {baseurl}/users/channels
 
 **Left from a Group**
 
 
-curl --request PUT \
-  --url {baseurl}/users/{:id}/left \
-  --header 'Content-Type: application/json' \
-  --data '{"channel_name":"epixelsolutions"}'
+    curl --request PUT \
+    --url {baseurl}/users/{:id}/left \
+    --header 'Content-Type: application/json' \
+    --data '{"channel_name":"epixelsolutions"}'
