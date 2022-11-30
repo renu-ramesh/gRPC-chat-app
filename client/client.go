@@ -10,23 +10,30 @@ import (
 	"os"
 
 	"chat_app_grpc/chatpb"
+	"chat_app_grpc/internal/common"
+	"chat_app_grpc/internal/db"
 
 	"google.golang.org/grpc"
 )
 
-var channelDetails = flag.String("channel", "default", "Channel name for chatting")
-var senderName = flag.String("sender", "default", "Senders name")
+var channelDetails = flag.String("channel", "", "Channel name for chatting")
+var userName = flag.String("username", "", "Senders name")
 var tcpServer = flag.String("server", ":5400", "Tcp server")
 
 func joinChannel(ctx context.Context, client chatpb.ChatServiceClient) {
 
-	channel := chatpb.Channel{Name: *channelDetails, SendersName: *senderName}
+	if *channelDetails != "" {
+		err := common.ValidateUserChannel(*userName, *channelDetails)
+		if err != nil {
+			log.Fatalf("Invalid group name: %v", err)
+		}
+		fmt.Printf("Joined channel: %v \n", *channelDetails)
+	}
+	channel := chatpb.Channel{Name: *channelDetails, SendersName: *userName}
 	stream, err := client.JoinChannel(ctx, &channel)
 	if err != nil {
 		log.Fatalf("client.JoinChannel(ctx, &channel) throws: %v", err)
 	}
-
-	fmt.Printf("Joined channel: %v \n", *channelDetails)
 
 	waitc := make(chan struct{})
 
@@ -41,14 +48,13 @@ func joinChannel(ctx context.Context, client chatpb.ChatServiceClient) {
 				log.Fatalf("Failed to receive message from channel joining.")
 			}
 
-			if *senderName != in.Sender {
+			if *userName != in.Sender {
 				fmt.Printf("%v : %v \n", in.Sender, in.Message)
 			}
 		}
 	}()
 	<-waitc
 }
-
 func sendMessage(ctx context.Context, client chatpb.ChatServiceClient, message string) {
 	stream, err := client.SendMessage(ctx)
 	if err != nil {
@@ -57,9 +63,9 @@ func sendMessage(ctx context.Context, client chatpb.ChatServiceClient, message s
 	msg := chatpb.Message{
 		Channel: &chatpb.Channel{
 			Name:        *channelDetails,
-			SendersName: *senderName},
+			SendersName: *userName},
 		Message: message,
-		Sender:  *senderName,
+		Sender:  *userName,
 	}
 	stream.Send(&msg)
 
@@ -68,25 +74,36 @@ func sendMessage(ctx context.Context, client chatpb.ChatServiceClient, message s
 func main() {
 
 	flag.Parse()
+	db.ConnectDatabase()
 
-	fmt.Println("--- CLIENT APP ---")
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
+	if *userName != "" {
+		err := common.ValidateUser(*userName)
+		if err != nil {
+			log.Fatalf("Fail to authenticate user: %v", err)
+		}
 
-	conn, err := grpc.Dial(*tcpServer, opts...)
-	if err != nil {
-		log.Fatalf("Fail to dail: %v", err)
-	}
+		fmt.Println("--- CLIENT APP ---")
+		var opts []grpc.DialOption
+		opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
 
-	defer conn.Close()
-	ctx := context.Background()
-	client := chatpb.NewChatServiceClient(conn)
+		conn, err := grpc.Dial(*tcpServer, opts...)
+		if err != nil {
+			log.Fatalf("Fail to dail: %v", err)
+		}
 
-	go joinChannel(ctx, client)
+		defer conn.Close()
+		ctx := context.Background()
+		client := chatpb.NewChatServiceClient(conn)
 
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		go sendMessage(ctx, client, scanner.Text())
+		go joinChannel(ctx, client)
+
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			go sendMessage(ctx, client, scanner.Text())
+		}
+
+	} else {
+		log.Fatalf("Fail to authenticate user")
 	}
 
 }

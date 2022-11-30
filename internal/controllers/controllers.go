@@ -1,32 +1,25 @@
 package controllers
 
 import (
-	"chat_app_grpc/Internal/db"
-	"chat_app_grpc/Internal/models"
+	"chat_app_grpc/internal/common"
+	"chat_app_grpc/internal/db"
+	"chat_app_grpc/internal/models"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
+// Create a new user
 func CreateUser(c *gin.Context) {
-	// Validate input
+
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	// Check user already exist
-	count := int64(0)
-	if err := db.DB.Model(&models.User{}).
-		Where("name = ? ", user.Name).
-		Count(&count).
-		Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if exists := count > 0; exists {
+	if exists, _ := common.CheckUserExistByName(user.Name); exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exist!"})
 		return
 	}
@@ -37,6 +30,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// List all users
 func FindUsers(c *gin.Context) {
 	var user []models.User
 	db.DB.Find(&user)
@@ -44,8 +38,9 @@ func FindUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
+// create new group/channel
 func CreateChannel(c *gin.Context) {
-	// Validate input
+
 	var channel models.Channel
 	if err := c.ShouldBindJSON(&channel); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -65,12 +60,14 @@ func CreateChannel(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Channel already exist!"})
 		return
 	}
-	// Create User
+	// Create channel
 	ChData := models.Channel{Name: channel.Name, Type: channel.Type}
 	db.DB.Create(&ChData)
 
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+// List all groups/channels
 func FindChannels(c *gin.Context) {
 
 	var channels []models.Channel
@@ -79,8 +76,10 @@ func FindChannels(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": channels})
 }
 
+// Delete a channel
 func DeleteChannel(c *gin.Context) {
 
+	// check channel exist
 	var channel models.Channel
 	if err := db.DB.Where("id = ?", c.Param("id")).First(&channel).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
@@ -93,6 +92,7 @@ func DeleteChannel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// new user join to a channel/group
 func JoinChannel(c *gin.Context) {
 	// Validate input
 	var inputData models.UserChannelDetails
@@ -107,12 +107,14 @@ func JoinChannel(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User Record not found!"})
 		return
 	}
+	// check channel exist
 	var channel models.Channel
 	if err := db.DB.Where("name = ?", inputData.ChannelName).First(&channel).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "channel Record not found!"})
 		return
 	}
 
+	// check user already joined the channel
 	if err := db.DB.Model(&models.UserChannelDetails{}).
 		Where("user_name = ? AND channel_name = ?", user.Name, inputData.ChannelName).
 		Count(&count).
@@ -131,6 +133,7 @@ func JoinChannel(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+// Left from a channel/group
 func LeftChannel(c *gin.Context) {
 
 	var inputData models.UserChannelDetails
@@ -169,6 +172,8 @@ func LeftChannel(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+// List users's joined channel details
 func UsersChannels(c *gin.Context) {
 
 	var channels []models.UserChannelDetails

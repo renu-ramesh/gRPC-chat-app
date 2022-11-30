@@ -1,7 +1,7 @@
 package db
 
 import (
-	"chat_app_grpc/Internal/models"
+	"chat_app_grpc/internal/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
