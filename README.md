@@ -15,7 +15,7 @@ To run the REST API endpoints :
     go run internal/main.go
 
 To run the gRPC backend server :
-    go run server/server.go
+        go run server/server.go
 
 
 To run client server with group channels (one-to-many) :
