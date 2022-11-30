@@ -12,16 +12,20 @@ communicate directly with other users.
 ## Application Setup
 
 To run the REST API endpoints :
+
     go run internal/main.go
 
 To run the gRPC backend server :
-        go run server/server.go
+
+    go run server/server.go
 
 
 To run client server with group channels (one-to-many) :
+
     go run client/client.go -channel {channel_name} -username {sender_name} -server :5400
 
 To run client server without group name specification (one-to-one) :
+
     go run client/client.go -username {sender_name} -server :5400
 
 ## Methods
